@@ -1,0 +1,52 @@
+name: update-friends-posts
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0,6,12,18,21 * * *"
+  workflow_dispatch:
+
+env:
+  SIMPLE_MODE: true
+  STORAGE_TYPE: sqlite
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.x
+    - name: Install requirements
+      working-directory: ./hexo_circle_of_friends
+      run: |
+        pip install -r requirements.txt
+    - name: set env
+      run: |
+        echo "BASE_PATH=$(pwd)" >> $GITHUB_ENV
+        echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+    - name: Update posts (sqlite mode)
+      env:
+        PYTHONPATH: ${{ env.PYTHONPATH }}
+      run: |
+        python ./hexo_circle_of_friends/run.py
+    - name: simple mode transform
+      if: ${{ env.SIMPLE_MODE == 'true' }}
+      run: |
+        python ./hexo_circle_of_friends/utils/simple_mode_transform_json.py
+    - name: Push to output branch
+      if: ${{ env.SIMPLE_MODE == 'true' }}
+      run: |
+        git config user.name github-actions[bot]
+        git config user.email github-actions[bot]@noreply.github.com
+        git fetch origin output || true
+        git checkout -B output
+        git add --all
+        git commit -m "Generate Json" || echo "No changes"
+        git push origin output --force
