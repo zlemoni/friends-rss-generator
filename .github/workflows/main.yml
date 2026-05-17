@@ -104,11 +104,14 @@ jobs:
 
     - name: simple mode push # 推送极简模式
       if: ${{ env.SIMPLE_MODE == 'true' }}
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: output
-        force: true
+      run: |
+        git config user.name github-actions[bot]
+        git config user.email github-actions[bot]@noreply.github.com
+        git fetch origin output || true
+        git checkout -B output
+        git add --all
+        git commit -m "Generate Json" || true
+        git push origin output --force
 
     - name: keep alive
       uses: gautamkrishnar/keepalive-workflow@master # keep workflows from being suspended when no commit for a long time
