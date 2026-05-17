@@ -84,14 +84,10 @@ jobs:
 
     - name: Push sqlite data # sqlite push
       if: ${{ env.STORAGE_TYPE == 'sqlite' }}
-      uses: github-actions-x/commit@v2.9
+      uses: ad-m/github-push-action@master
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: "Update data.db"
-        files: data.db
-        rebase: 'true'
-        name: ${{ env.GITHUB_NAME }}
-        email: ${{ env.GITHUB_EMAIL }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
 
     - name: mongodb Update posts # mongodb
       if: ${{ env.STORAGE_TYPE == 'mongodb' }}
@@ -108,14 +104,11 @@ jobs:
 
     - name: simple mode push # 推送极简模式
       if: ${{ env.SIMPLE_MODE == 'true' }}
-      uses: github-actions-x/commit@v2.9
+      uses: ad-m/github-push-action@master
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        push-branch: 'output'
-        force-push: 'true'
-        commit-message: 'Generate Json'
-        name: github-actions[bot]
-        email: github-actions[bot]@noreply.github.com
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: output
+        force: true
 
     - name: keep alive
       uses: gautamkrishnar/keepalive-workflow@master # keep workflows from being suspended when no commit for a long time
